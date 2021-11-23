@@ -5,6 +5,7 @@ import {
   InMemoryCache,
   ApolloProvider,
   useQuery,
+  useLazyQuery,
   gql,
 } from '@apollo/client';
 
@@ -50,20 +51,52 @@ const GET_DOG_PHOTO = gql`
   }
 `;
 
-function DogPhoto({ breed }) {
-  const { loading, error, data } = useQuery(GET_DOG_PHOTO, {
-    variables: { breed },
-  });
+// function DogPhoto({ breed }) {
+//   const { loading, error, data, refetch, networkStatus } = useQuery(
+//     GET_DOG_PHOTO,
+//     {
+//       variables: { breed },
+//       notifyOnNetworkStatusChange: true,
+//     }
+//   );
 
-  if (loading) return null;
+//   if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
+//   if (loading) return null;
+//   if (error) return `Error! ${error}`;
+
+//   return (
+//     <div>
+//       <img
+//         alt="dog"
+//         src={data.dog.displayImage}
+//         style={{ height: 100, width: 100 }}
+//       />
+//       <button
+//         onClick={() =>
+//           refetch({
+//             breed: 'dalmation',
+//           })
+//         }
+//       >
+//         Refetch!
+//       </button>
+//     </div>
+//   );
+// }
+
+function DelayedQuery() {
+  const [getDog, { loading, error, data }] = useLazyQuery(GET_DOG_PHOTO);
+
+  if (loading) return <p>Loading...</p>;
   if (error) return `Error! ${error}`;
 
   return (
-    <img
-      alt="dog"
-      src={data.dog.displayImage}
-      style={{ height: 100, width: 100 }}
-    />
+    <div>
+      {data?.dog && <img alt="dog" src={data.dog.displayImage} />}
+      <button onClick={() => getDog({ variables: { breed: 'bulldog' } })}>
+        Click me!
+      </button>
+    </div>
   );
 }
 
@@ -72,7 +105,7 @@ function App() {
     <div>
       <h2>My first Apollo Fetch Query app</h2>
       <Dogs />
-      <DogPhoto />
+      <DelayedQuery />
     </div>
   );
 }
