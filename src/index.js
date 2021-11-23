@@ -5,101 +5,78 @@ import {
   InMemoryCache,
   ApolloProvider,
   useQuery,
-  useLazyQuery,
   gql,
 } from '@apollo/client';
 
 import './index.css';
 
 const client = new ApolloClient({
-  uri: 'https://71z1g.sse.codesandbox.io',
+  uri: 'https://sxewr.sse.codesandbox.io/',
   cache: new InMemoryCache(),
 });
 
-const GET_DOGS = gql`
-  query GetDogs {
-    dogs {
+const GET_TODOS = gql`
+  {
+    todos {
       id
-      breed
+      type
     }
   }
 `;
 
-function Dogs({ onDogSelected }) {
-  // const { loading, error, data } = useQuery(GET_DOGS);
-  const { loading, error, data } = useQuery(GET_DOGS, {
-    fetchPolicy: 'network-only',
-    nextFetchPolicy: 'cache-first',
-  });
-
-  if (loading) return 'Loading...';
-  if (error) return `Error! ${error.message}`;
-
-  return (
-    <select name="dog" onChange={onDogSelected}>
-      {data.dogs.map((dog) => (
-        <option key={dog.id} value={dog.breed}>
-          {dog.breed}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-const GET_DOG_PHOTO = gql`
-  query Dog($breed: String!) {
-    dog(breed: $breed) {
-      id
-      displayImage
-    }
-  }
-`;
-
-// function DogPhoto({ breed }) {
-//   const { loading, error, data, refetch, networkStatus } = useQuery(
-//     GET_DOG_PHOTO,
-//     {
-//       variables: { breed },
-//       notifyOnNetworkStatusChange: true,
-//     }
-//   );
-
-//   if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
-//   if (loading) return null;
-//   if (error) return `Error! ${error}`;
-
-//   return (
-//     <div>
-//       <img
-//         alt="dog"
-//         src={data.dog.displayImage}
-//         style={{ height: 100, width: 100 }}
-//       />
-//       <button
-//         onClick={() =>
-//           refetch({
-//             breed: 'dalmation',
-//           })
-//         }
-//       >
-//         Refetch!
-//       </button>
-//     </div>
-//   );
-// }
-
-function DelayedQuery() {
-  const [getDog, { loading, error, data }] = useLazyQuery(GET_DOG_PHOTO);
+function Todos() {
+  const { loading, error, data } = useQuery(GET_TODOS);
 
   if (loading) return <p>Loading...</p>;
-  if (error) return `Error! ${error}`;
+  if (error) return <p>Error :(</p>;
+
+  return data.todos.map(({ id, type }) => {
+    let input;
+
+    return (
+      <div key={id}>
+        <p>{type}</p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!input.value.trim()) {
+              return;
+            }
+          }}
+        >
+          <input
+            ref={(node) => {
+              input = node;
+            }}
+          />
+          <button type="submit">Update Todo</button>
+        </form>
+      </div>
+    );
+  });
+}
+
+function AddTodo() {
+  let input;
 
   return (
     <div>
-      {data?.dog && <img alt="dog" src={data.dog.displayImage} />}
-      <button onClick={() => getDog({ variables: { breed: 'bulldog' } })}>
-        Click me!
-      </button>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!input.value.trim()) {
+            return;
+          }
+          input.value = '';
+        }}
+      >
+        <input
+          ref={(node) => {
+            input = node;
+          }}
+        />
+        <button type="submit">Add Todo</button>
+      </form>
     </div>
   );
 }
@@ -107,9 +84,9 @@ function DelayedQuery() {
 function App() {
   return (
     <div>
-      <h2>My first Apollo Fetch Query app</h2>
-      <Dogs />
-      <DelayedQuery />
+      <h2>Building Mutation Components</h2>
+      <AddTodo />
+      <Todos />
     </div>
   );
 }
