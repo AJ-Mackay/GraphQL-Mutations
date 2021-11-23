@@ -68,15 +68,26 @@ function Todos() {
 
 function AddTodo() {
   let input;
-  const [addTodo, { loading, error }] = useMutation(ADD_TODO, {
-    variables: {
-      text: 'placeholder',
+  const [addTodo] = useMutation(ADD_TODO, {
+    update(cache, { data: { addTodo } }) {
+      cache.modify({
+        fields: {
+          todos(existingTodos = []) {
+            const newTodoRef = cache.writeFragment({
+              data: addTodo,
+              fragment: gql`
+                fragment NewTodo on Todo {
+                  id
+                  type
+                }
+              `,
+            });
+            return [...existingTodos, newTodoRef];
+          },
+        },
+      });
     },
-    refetchQueries: [GET_TODOS, 'GetTodos'],
   });
-
-  if (loading) return 'Submitting...';
-  if (error) return `Submission error! ${error.message}`;
 
   return (
     <div>
