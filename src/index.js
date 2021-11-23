@@ -26,7 +26,11 @@ const GET_DOGS = gql`
 `;
 
 function Dogs({ onDogSelected }) {
-  const { loading, error, data } = useQuery(GET_DOGS);
+  // const { loading, error, data } = useQuery(GET_DOGS);
+  const { loading, error, data } = useQuery(GET_DOGS, {
+    fetchPolicy: 'network-only',
+    nextFetchPolicy: 'cache-first',
+  });
 
   if (loading) return 'Loading...';
   if (error) return `Error! ${error.message}`;
