@@ -6,6 +6,7 @@ import {
   ApolloProvider,
   useQuery,
   gql,
+  useMutation,
 } from '@apollo/client';
 
 import './index.css';
@@ -20,6 +21,15 @@ const GET_TODOS = gql`
     todos {
       id
       type
+    }
+  }
+`;
+
+const ADD_TODO = gql`
+  mutation AddTodo($text: String!) {
+    addTodo(text: $text) {
+      id
+      text
     }
   }
 `;
@@ -58,15 +68,22 @@ function Todos() {
 
 function AddTodo() {
   let input;
+  const [addTodo, { loading, error }] = useMutation(ADD_TODO, {
+    variables: {
+      text: 'placeholder',
+    },
+    refetchQueries: [GET_TODOS, 'GetTodos'],
+  });
+
+  if (loading) return 'Submitting...';
+  if (error) return `Submission error! ${error.message}`;
 
   return (
     <div>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (!input.value.trim()) {
-            return;
-          }
+          addTodo({ variables: { text: input.value } });
           input.value = '';
         }}
       >
